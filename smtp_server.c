@@ -145,6 +145,20 @@ int main( )
                 rst = send(cfd, buf, strlen(buf), 0);
                 break;
             }
+            else if(strcmp(buf,"RSET")==0 )
+            {
+                int j;
+                memset(buf,'\0',strlen(buf));
+                memset(domain,'\0',strlen(domain));
+                memset(sender,'\0',strlen(sender));
+                for(j=0;j<rsize;j++)
+                    memset(receivers[j],'\0',strlen(receivers[j]));
+                memset(data,'\0',strlen(data));
+                strcpy(buf,"250 OK");
+                rst = send(cfd, buf, strlen(buf), 0);
+                memset(buf,'\0',strlen(buf));
+                rsize=0;
+            }
         }
         rst = close(cfd);
         if (rst == -1)

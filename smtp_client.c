@@ -96,11 +96,12 @@ int main (int argc, char *argv[])
     	}
     	else if(strcmp(S,"RSET")==0)	//content will be entered from next line onwards
     	{
+    		interact(sfd, S);
     		flag=0;
     		check=1;
     	}
     	else
-    		printf("> command not found!\n");
+    		printf("> Wrong / Unexpected Command !\n");
     	printf("> ");
     }
     if (rst == -1)
