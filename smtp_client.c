@@ -94,6 +94,11 @@ int main (int argc, char *argv[])
     		interact(sfd, S);
     		break;
     	}
+    	else if(strcmp(S,"RSET")==0)	//content will be entered from next line onwards
+    	{
+    		flag=0;
+    		check=1;
+    	}
     	else
     		printf("> command not found!\n");
     	printf("> ");
