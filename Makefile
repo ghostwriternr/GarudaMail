@@ -1,18 +1,24 @@
-all: reset smtp_server smtp_client
+all: reset server_abc server_xyz client
 
-smtp_server:
-	cc smtp_server.c -o ss
+server_abc:
+	cc server_abc.c -o sa
 
-smtp_client:
-	cc smtp_client.c -o sc
+server_xyz:
+	cc server_xyz.c -o sx
 
-clean: clean_sc clean_ss
+client:
+	cc client.c -o c
 
-clean_sc:
-	rm sc
+clean: clean_c clean_sa clean_sx reset
 
-clean_ss:
-	rm ss
+clean_c:
+	rm c
+
+clean_sa:
+	rm sa
+
+clean_sx:
+	rm sx
 
 reset:
 	reset
