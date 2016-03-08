@@ -16,8 +16,8 @@ int port_pop;
 
 #define BUF_SIZE 10000
 
-char ip_xyz[20]={"127.0.0.1"};//10.117.11.124"};
-char ip_abc[20]={"127.0.0.1"};//10.117.11.106"};
+char ip_xyz[20]={"10.117.11.124"};
+char ip_abc[20]={"10.117.11.106"};
 char ip[20];
 char givendomain[100];
 
@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
 		}
 	else if(strcmp(givendomain,"abc.com") == 0)
 		{
-			strcpy(ip,ip_xyz);
+			strcpy(ip,ip_abc);
 			if(i==2)
 				port_num = port_pop_abc;
 			else

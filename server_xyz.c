@@ -21,8 +21,8 @@ int   other_server_port = 23000;
 char  mydomain[20]={"xyz.com"};
 char  otherdomain[20]={"abc.com"};
 
-char ip_xyz[20]={"127.0.0.1"};//10.117.11.124"};
-char ip_abc[20]={"127.0.0.1"};//10.117.11.106"};
+char ip_xyz[20]={"10.117.11.124"};
+char ip_abc[20]={"10.117.11.106"};
 
 void serviceready( int cfd );
 void receive(int cfd, char buf[]);
@@ -90,7 +90,8 @@ int main( )
         Bind the server to an address. 
     */
     rst = bind (sfd, (struct sockaddr *) &srv_addr, addrlen); /* Note
-        * the type casting of the pointer to the server's address. */
+        * the type casting of the 
+        pointer to the server's address. */
 
     if (rst == -1)
     {
@@ -249,12 +250,12 @@ void smtp(int cfd)
                 }
             }
             for(p=0;p<m;p+=1)
-                memset(list[p],'\0',sizeof(list[p]));
+                memset(list[p],'\0',1000);
             for(p=0;p<rsize;p+=1)
-                memset(receivers[p],'\0',sizeof(receivers[p]));
-            memset(domain , '\0', sizeof(domain));
-            memset(sender , '\0', sizeof(sender));
-            memset(data , '\0', sizeof(data));
+                memset(receivers[p],'\0',500);
+            memset(domain , '\0', 100);
+            memset(sender , '\0', 500);
+            memset(data , '\0', 10000);
             isOther=0;
             rsize=0;
             m=1;
