@@ -13,10 +13,10 @@
 
 #define BUF_SIZE  10000
 
-int   port_num  = 21000;
-int   port_num_copy = 21000;
-int   port_pop = 22000;
-int   other_server_port = 23000;
+int   port_num  = 21001;
+int   port_num_copy = 21001;
+int   port_pop = 22001;
+int   other_server_port = 23001;
 
 char  mydomain[20]={"xyz.com"};
 char  otherdomain[20]={"abc.com"};
@@ -195,6 +195,7 @@ void smtp(int cfd)
         {
             if(strstr(buf,otherdomain)!=NULL)
                 isOther=1;
+            memset(data , '\0', 10000);
             RCPTTO(cfd, buf, receivers, &rsize);
         }
         else if(strcmp(buf,"DATA")==0) //content will be entered from next line onwards

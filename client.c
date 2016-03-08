@@ -8,10 +8,10 @@
 #include <arpa/inet.h> // For inet_pton (), inet_ntop ().
 
 int port_num ;	//send email port num
-int port_num_xyz = 21000;
-int	port_pop_xyz = 22000;
-int port_num_abc = 23000;
-int port_pop_abc = 24000;
+int port_num_xyz = 21001;
+int	port_pop_xyz = 22001;
+int port_num_abc = 23001;
+int port_pop_abc = 24001;
 int port_pop;
 
 #define BUF_SIZE 10000
