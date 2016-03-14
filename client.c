@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/socket.h> // For the socket (), bind () etc. functions.
-#include <netinet/in.h> // For IPv4 data struct..
-#include <string.h> // For memset.
+#include <sys/socket.h>   // For the socket (), bind () etc. functions.
+#include <netinet/in.h>  // For IPv4 data struct..
+#include <string.h> 	// For memset.
 #include <arpa/inet.h> // For inet_pton (), inet_ntop ().
 
 int port_num ;	//send email port num
@@ -16,11 +16,13 @@ int port_pop;
 
 #define BUF_SIZE 10000
 
-char ip_xyz[20]={"10.117.11.124"};
-char ip_abc[20]={"10.117.11.106"};
+char ip_xyz[20]={"127.0.0.1"};//10.117.11.124"};
+char ip_abc[20]={"127.0.0.1"};//10.117.11.106"};
 char ip[20];
 char givendomain[100];
 
+int interact1(int sfd,char S[], char C[]);
+int check(int cfd, char user1[]);
 void receive(int sfd, char buf[]);
 void interact(int sfd, char S[]);
 void DATA(int sfd);
@@ -31,8 +33,22 @@ void set(char buf[], int *r, int *u);
 
 int main (int argc, char *argv[])
 {
-	int i;
-   	printf("> Do you want to send emails(1) or retrieve emails(2) ?\n> ");
+	int i,b,kk,mm;
+	char cha;
+	if(argc==1)
+	{
+		printf("> How many accounts do you have ?\n>");
+    	scanf("%d",&kk);
+	    for(mm=1;mm<kk;mm++)
+	    {
+	    	b=fork();
+	    	if(b==0)
+	    	{
+	    		execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", "bash", "-c", "./c c", (void*)NULL);
+	        }
+	    }
+	}
+    printf("> Do you want to send emails(1) or retrieve emails(2) ?\n> ");
     scanf("%d",&i);
 	printf("Domain Name?\n> ");
 	scanf("%s",givendomain);
@@ -127,8 +143,8 @@ int mailfrom_helo(int sfd, char S[])
 
 void send_mail(int sfd)
 {
-	char S[10000],temp[1000];
-	int i;
+	char S[10000],temp[1000], C[1000];
+	int i,fl;
     while(1)
     {
     	do{
@@ -142,13 +158,17 @@ void send_mail(int sfd)
     	while(i)
     	{
     		memset(temp,'\0',strlen(temp));
-    		strcpy(temp,"RCPT TO ");
-    		printf("> Mail to?\n> ");
-    		scanf("%s",S);
-    		strcat(temp,S);
-    		interact(sfd,temp);
-    		usleep(100000);
-    		i-=1;
+	   		strcpy(temp,"RCPT TO ");
+	   		printf("> Mail to?\n> ");
+	    	scanf("%s",S);
+	   		strcat(temp,S);
+	   		if(interact1(sfd,temp,S) == 0)
+	    	{
+	    		printf("> No such user exists!\n> ");
+	    		continue;
+	    	}
+	    	usleep(100000);
+	    	i-=1;
     	}
     	printf("> Enter mail body [end with a single dot(.)]\n> ");
     	DATA(sfd);
@@ -170,25 +190,13 @@ void send_mail(int sfd)
 
 void interact(int sfd,char S[])
 {
-	//printf("inside interact %s\n",S);
     int rst;
-    // printf("1\n");
 	char buf[BUF_SIZE] = {'\0'};
-    // printf("2\n");
 	strcpy(buf,S);
-	// printf("3 sfd %d \n",sfd);
-	//sleep(1);
 	usleep(100000);
 	rst = send(sfd, buf, strlen(buf), 0);
-    // printf("4\n");
-	//printf("Sent %s, rst %d\n",S,rst);
-    // printf("5\n");
 	memset(buf,'\0',strlen(buf));
-    // printf("6\n");
 	rst = recv(sfd, buf, BUF_SIZE, 0);
-    // printf("7\n");
-	//printf("%s\n",buf);
-	// printf("8\n");
 }
 
 void DATA(int sfd)
@@ -219,7 +227,7 @@ void DATA(int sfd)
 
 void retrieve_mail(int sfd)
 {
-	char buf[10000],temp[10000];
+	char buf[10000],temp[10000],*ptr;
 	int i,j,k,l,r,u,rst;
 	do{
 		do{
@@ -241,12 +249,14 @@ void retrieve_mail(int sfd)
 	    usleep(100000);
     	rst = send(sfd, buf, strlen(buf), 0);
 		receive(sfd,buf);
-		printf("> Password?\n> ");
+		// printf("> Password?\n> ");
 		memset(buf,'\0',10000);
 		memset(temp,'\0',10000);
 		strcpy(buf,"PASS ");
-		scanf("%s",temp);
-		strcat(buf,temp);
+		ptr = getpass("> Password?\n> ");
+		// scanf("%s",temp);
+		// strcat(buf,temp);
+	    strcat(buf,ptr);
 	    usleep(100000);
     	rst = send(sfd, buf, strlen(buf), 0);
 	    receive(sfd,buf);
@@ -274,7 +284,7 @@ void retrieve_mail(int sfd)
 	    	printf("\t%d %sbytes\n> ",j,buf);
 	    }
 	    if(u==0)
-	    	printf("No Unread Emails!\n> ");
+	    	printf("No Unread Emails!\n");
 	    else
 	    	printf("Unread Emails :\n> ");
 	    for(i=0;i<u;i++,j++)
@@ -333,4 +343,39 @@ void receive(int sfd, char buf[])
     	rst = recv(sfd, buf, BUF_SIZE, 0);
 	}while(strlen(buf)==0);
     // printf("Received : %s\n",buf);
+}
+
+int check(int cfd, char user1[])
+{
+    //buf : "USER name@abc.com"
+    char temp[1000];
+    char user[1000]={'\0'};
+    strcpy(user,user1);
+    int flag=0,rst;
+    strcat(user,"??");
+    // printf("string : %s\n",user);
+    FILE *fp;
+    fp = fopen("./data/logininfo.txt","r");
+    while(fscanf(fp,"%s",temp) != EOF && flag==0)
+    {
+        // printf("temp:.%s., user :.%s.",temp,user);
+        if(strstr(temp,user) !=NULL)
+            flag=1;
+    }
+    fclose(fp);
+    return flag;
+}
+
+int interact1(int sfd,char S[], char C[])
+{
+	if(check(sfd, C) == 0)
+		return 0;
+    int rst;
+	char buf[BUF_SIZE] = {'\0'};
+	strcpy(buf,S);
+	usleep(100000);
+	rst = send(sfd, buf, strlen(buf), 0);
+	memset(buf,'\0',strlen(buf));
+	rst = recv(sfd, buf, BUF_SIZE, 0);
+	return 1;
 }

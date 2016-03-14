@@ -21,9 +21,10 @@ int   other_server_port = 21001;
 char  mydomain[20]={"abc.com"};
 char  otherdomain[20]={"xyz.com"};
 
-char  ip_xyz[20]={"10.117.11.124"};
-char  ip_abc[20]={"10.117.11.106"};
+char  ip_xyz[20]={"127.0.0.1"};
+char  ip_abc[20]={"127.0.0.1"};
 
+int VRFY(int cfd, char user1[]);
 void serviceready( int cfd );
 void receive(int cfd, char buf[]);
 void HELO(int cfd,char buf[],char domain[]);
@@ -676,4 +677,31 @@ int connect_to_other_server()
     /***************** Connect to the server ************************/
     rst = connect (sfd, (struct sockaddr *) &srv_addr, addrlen);
     return sfd;
+}
+
+int VRFY(int cfd, char user1[])
+{
+    //buf : "USER name@abc.com"
+    char temp[1000];
+    char user[1000]={'\0'};
+    strcpy(user,user1);
+    int flag=0,rst;
+    strcat(user,"??");
+    printf("string : %s\n",user);
+    FILE *fp;
+    fp = fopen("./data/logininfo.txt","r");
+    while(fscanf(fp,"%s",temp) != EOF && flag==0)
+    {
+        printf("temp:.%s., user :.%s.",temp,user);
+        if(strstr(temp,user) !=NULL)
+            flag=1;
+    }
+    fclose(fp);
+    if(!flag)
+    {
+        printf("\n\n\n%s DOES NOT exists\n\n\n",user);
+    }
+    else
+        printf("\n\n\n%s exists\n\n\n",user);
+    return flag;
 }
