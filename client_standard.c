@@ -10,16 +10,17 @@
 int port_num ;	//send email port num
 int port_num_xyz = 21001;
 int	port_pop_xyz = 22001;
-int port_num_abc = 23001;
-int port_pop_abc = 24001;
+int port_num_garudaserver = 25;
+int port_pop_garudaserver = 110;
 int port_pop;
 
 #define BUF_SIZE 10000
 
-char ip_xyz[20] = {"127.0.0.1"}; //10.117.11.124"};
-char ip_abc[20] = {"127.0.0.1"}; //10.117.11.106"};
+char ip_xyz[20] = {"10.117.11.124"}; //10.117.11.124"};
+char ip_garudaserver[20] = {"10.5.30.131"}; //10.117.11.106"};
 char ip[20];
 char givendomain[100];
+int first = 1;
 
 int interact1(int sfd, char S[], char C[]);
 int check(int cfd, char user1[]);
@@ -60,13 +61,13 @@ int main (int argc, char *argv[])
 		else
 			port_num = port_num_xyz;
 	}
-	else if (strcmp(givendomain, "abc.com") == 0)
+	else if (strcmp(givendomain, "garudaserver.com") == 0)
 	{
-		strcpy(ip, ip_abc);
+		strcpy(ip, ip_garudaserver);
 		if (i == 2)
-			port_num = port_pop_abc;
+			port_num = port_pop_garudaserver;
 		else
-			port_num = port_num_abc;
+			port_num = port_num_garudaserver;
 	}
 	else
 	{
@@ -123,6 +124,15 @@ int main (int argc, char *argv[])
 
 int mailfrom_helo(int sfd, char S[])
 {
+	// if (first == 1)
+	// {
+	printf("HERE1\n");
+	int rst;
+	char buf[BUF_SIZE] = {'\0'};
+	memset(buf, '\0', strlen(buf));
+	rst = recv(sfd, buf, BUF_SIZE, 0);
+	printf("%s\n", buf);
+	printf("HERE2\n");
 	char helostr[100] = {"HELO "};
 	int i, j, n = strlen(S);
 	for (i = 1; S[i - 1] != '@' && i < n; i++);
@@ -133,20 +143,28 @@ int mailfrom_helo(int sfd, char S[])
 		helostr[j] = S[i];
 	}
 	helostr[j] = '\0';
+	strcat(helostr, "\r\n");
 	interact(sfd, helostr);
-	//printf("Here\n");
-	char mailstr[1000] = { "MAIL FROM " };
+	// first = 0;
+	printf("HERE3\n");
+	// }
+	char mailstr[1000] = { "MAIL FROM:" };
+	strcat(mailstr, "<");
 	strcat(mailstr, S);
+	strcat(mailstr, ">");
+	strcat(mailstr, "\r\n");
 	interact(sfd, mailstr);
+	printf("HERE4\n");
 	return 1;
 }
 
 void send_mail(int sfd)
 {
 	char S[10000], temp[1000], C[1000];
-	int i, fl;
+	int i, fl, rst;
 	while (1)
 	{
+		memset(S, '\0', strlen(S));
 		do {
 			printf("> Mail from?\n> ");
 			scanf("%s", S);
@@ -158,10 +176,12 @@ void send_mail(int sfd)
 		while (i)
 		{
 			memset(temp, '\0', strlen(temp));
-			strcpy(temp, "RCPT TO ");
+			strcpy(temp, "RCPT TO:");
 			printf("> Mail to?\n> ");
 			scanf("%s", S);
+			strcat(temp, "<");
 			strcat(temp, S);
+			strcat(temp, ">");
 			if (interact1(sfd, temp, S) == 0)
 			{
 				printf("> No such user exists!\n> ");
@@ -181,30 +201,39 @@ void send_mail(int sfd)
 			printf("> Bye!\n");
 			memset(S, '\0', strlen(S));
 			strcpy(S, "QUIT");
+			strcat(S, "\r\n");
 			interact(sfd, S);
 			exit(1);
 		}
+		else
+		{
+			memset(S, '\0', strlen(S));
+			strcpy(S, "QUIT");
+			strcat(S, "\r\n");
+			interact(sfd, S);
+		}
 	}
-	//printf("exiting\n");
 }
 
 void interact(int sfd, char S[])
 {
 	int rst;
+	printf("%s\n", S);
 	char buf[BUF_SIZE] = {'\0'};
 	strcpy(buf, S);
 	usleep(100000);
 	rst = send(sfd, buf, strlen(buf), 0);
 	memset(buf, '\0', strlen(buf));
 	rst = recv(sfd, buf, BUF_SIZE, 0);
+	// printf("%s\n", buf);
 }
 
 void DATA(int sfd)
 {
 	int i, rst;
 	char ch, S[10000] = {"DATA"};
+	strcat(S, "\r\n");
 	interact(sfd, S);
-	// printf("> ");
 	while (1)
 	{
 		memset(S, '\0', strlen(S));
@@ -219,9 +248,22 @@ void DATA(int sfd)
 		S[i] = '\0';
 		printf("> ");
 		usleep(100000);
-		rst = send(sfd, S, strlen(S), 0);
 		if (i == 1 && S[0] == '.')
+		{
+			char buf[BUF_SIZE] = {'\0'};
+			strcpy(buf, S);
+			strcat(buf, "\r\n");
+			rst = send(sfd, buf, strlen(buf), 0);
+			memset(buf, '\0', strlen(buf));
+			rst = recv(sfd, buf, BUF_SIZE, 0);
+			printf("%s\n", buf);
 			break;
+		}
+		else
+		{
+			strcat(S, "\r\n");
+			rst = send(sfd, S, strlen(S), 0);
+		}
 	}
 }
 
@@ -249,17 +291,16 @@ void retrieve_mail(int sfd)
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
 		receive(sfd, buf);
-		// printf("> Password?\n> ");
 		memset(buf, '\0', 10000);
 		memset(temp, '\0', 10000);
 		strcpy(buf, "PASS ");
 		ptr = getpass("> Password?\n> ");
-		// scanf("%s",temp);
-		// strcat(buf,temp);
 		strcat(buf, ptr);
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
+		memset(buf, '\0', 10000);
 		receive(sfd, buf);
+		printf("%s\n", buf);
 		if (strstr(buf, "ERR") != NULL)
 		{
 			printf("> Error : Wrong Credentials!\n> ");
@@ -271,9 +312,9 @@ void retrieve_mail(int sfd)
 	{
 		memset(buf, '\0', 10000);
 		strcpy(buf, "LIST");
+		strcat(buf, "\r\n");
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
-		//sleep(2);
 		receive(sfd, buf);
 		set(buf, &r, &u);
 		if (r != 0)
@@ -300,6 +341,7 @@ void retrieve_mail(int sfd)
 			} while (i > (r + u));
 			memset(buf, '\0', 10000);
 			sprintf(buf, "%d", i);
+			strcat(buf, "\r\n");
 			usleep(100000);
 			rst = send(sfd, buf, strlen(buf), 0);
 			receive(sfd, buf);
@@ -313,6 +355,7 @@ void retrieve_mail(int sfd)
 		{
 			memset(buf, '\0', 10000);
 			strcpy(buf, "QUIT");
+			strcat(buf, "\r\n");
 			usleep(100000);
 			rst = send(sfd, buf, strlen(buf), 0);
 			exit(1);
@@ -347,7 +390,7 @@ void receive(int sfd, char buf[])
 
 int check(int cfd, char user1[])
 {
-	//buf : "USER name@abc.com"
+	//buf : "USER name@garudaserver.com"
 	char temp[1000];
 	char user[1000] = {'\0'};
 	strcpy(user, user1);
@@ -368,14 +411,18 @@ int check(int cfd, char user1[])
 
 int interact1(int sfd, char S[], char C[])
 {
-	if (check(sfd, C) == 0)
-		return 0;
+	// if (check(sfd, C) == 0)
+	// 	return 1;
 	int rst;
 	char buf[BUF_SIZE] = {'\0'};
 	strcpy(buf, S);
+	strcat(buf, "\r\n");
 	usleep(100000);
+	printf("ARE WE HERE?\n");
 	rst = send(sfd, buf, strlen(buf), 0);
 	memset(buf, '\0', strlen(buf));
+	printf("OR HERE?\n");
 	rst = recv(sfd, buf, BUF_SIZE, 0);
+	printf("%s\n", buf);
 	return 1;
 }

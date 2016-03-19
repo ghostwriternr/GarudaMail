@@ -16,13 +16,13 @@
 int   port_num  = 21001;
 int   port_num_copy = 21001;
 int   port_pop = 22001;
-int   other_server_port = 23001;
+int   other_server_port = 25;
 
 char  mydomain[20] = {"xyz.com"};
-char  otherdomain[20] = {"abc.com"};
+char  otherdomain[20] = {"garudaserver.com"};
 
-char ip_xyz[20] = {"127.0.0.1"};
-char ip_abc[20] = {"127.0.0.1"};
+char ip_xyz[20] = {"10.117.11.124"};
+char ip_garudaserver[20] = {"10.5.30.131"};
 
 int VRFY(int cfd, char user1[]);
 void serviceready( int cfd );
@@ -164,7 +164,7 @@ void smtp(int cfd)
     char tt[10000] = {'\0'};
     char list[100][1000] = {'\0'};
 
-    strcpy(tt, "HELO abc.com");
+    strcpy(tt, "HELO garudaserver.com");
     int m = 1;
     int rsize = 0, rst;
     while (1)
@@ -356,9 +356,7 @@ void MAILFROM(int cfd, char buf[], char sender[])
     int rst;
     int i;
     for (i = 0; buf[i] != ' '; i++);
-    for (i += 1; buf[i] != ':'; i++);
-    buf[strlen(buf)-1] = '\0';
-    buf[strlen(buf)-1] = '\0';
+    for (i += 1; buf[i] != ' '; i++);
     strcpy(sender, &buf[i + 1]);
     memset(buf, '\0', strlen(buf));
     strcpy(buf, "250 OK");
@@ -371,9 +369,7 @@ void RCPTTO(int cfd, char buf[], char receivers[][500], int *rsize)
     int rst;
     int i;
     for (i = 0; buf[i] != ' '; i++);
-    for (i += 1; buf[i] != ':'; i++);
-    buf[strlen(buf)-1] = '\0';
-    buf[strlen(buf)-1] = '\0';
+    for (i += 1; buf[i] != ' '; i++);
     strcpy(receivers[*rsize], &buf[i + 1]);
     *rsize = *rsize + 1;
     memset(buf, '\0', strlen(buf));
@@ -599,7 +595,7 @@ void send_details_pop3(int cfd, char user[], int *r, int *u)
 
 int check_login_pop3(int cfd, char buf[], char usrname[])
 {
-    //buf : "USER name@abc.com"
+    //buf : "USER name@garudaserver.com"
     char user[1000];
     char pass[1000];
     char temp[1000];
@@ -670,7 +666,7 @@ int connect_to_other_server()
     srv_addr.sin_family = AF_INET; // IPv4.
     srv_addr.sin_port   = htons (other_server_port); // Port Number.
 
-    rst = inet_pton (AF_INET, ip_abc, &srv_addr.sin_addr); /* To
+    rst = inet_pton (AF_INET, ip_garudaserver, &srv_addr.sin_addr); /* To
                               * type conversion of the pointer here. */
     if (rst <= 0)
     {
@@ -684,7 +680,7 @@ int connect_to_other_server()
 
 int VRFY(int cfd, char user1[])
 {
-    //buf : "USER name@abc.com"
+    //buf : "USER name@garudaserver.com"
     char temp[1000];
     char user[1000] = {'\0'};
     strcpy(user, user1);
