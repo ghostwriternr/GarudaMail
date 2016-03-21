@@ -8,15 +8,15 @@
 #include <arpa/inet.h> // For inet_pton (), inet_ntop ().
 
 int port_num ;	//send email port num
-int port_num_xyz = 21001;
-int	port_pop_xyz = 22001;
+// int port_num_xyz = 21001;
+// int	port_pop_xyz = 22001;
 int port_num_garudaserver = 25;
 int port_pop_garudaserver = 110;
 int port_pop;
 
 #define BUF_SIZE 100000
 
-char ip_xyz[20] = {"10.117.11.124"}; //10.117.11.124"};
+// char ip_xyz[20] = {"10.117.11.124"}; //10.117.11.124"};
 char ip_garudaserver[20] = {"10.5.30.131"}; //10.117.11.106"};
 char ip[20];
 char givendomain[100];
@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
 			b = fork();
 			if (b == 0)
 			{
-				execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", "bash", "-c", "./c c", (void*)NULL);
+				execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", "bash", "-c", "./cs cs", (void*)NULL);
 			}
 		}
 	}
@@ -54,15 +54,7 @@ int main (int argc, char *argv[])
 	scanf("%d", &i);
 	printf("Domain Name?\n> ");
 	scanf("%s", givendomain);
-	if (strcmp(givendomain, "xyz.com") == 0)
-	{
-		strcpy(ip, ip_xyz);
-		if (i == 2)
-			port_num = port_pop_xyz;
-		else
-			port_num = port_num_xyz;
-	}
-	else if (strcmp(givendomain, "garudaserver.com") == 0)
+	if (strcmp(givendomain, "garudaserver.com") == 0)
 	{
 		strcpy(ip, ip_garudaserver);
 		if (i == 2)
