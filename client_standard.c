@@ -14,7 +14,7 @@ int port_num_garudaserver = 25;
 int port_pop_garudaserver = 110;
 int port_pop;
 
-#define BUF_SIZE 10000
+#define BUF_SIZE 100000
 
 char ip_xyz[20] = {"10.117.11.124"}; //10.117.11.124"};
 char ip_garudaserver[20] = {"10.5.30.131"}; //10.117.11.106"};
@@ -75,7 +75,7 @@ int main (int argc, char *argv[])
 		printf("Incorrect Domain Name!\nAborting the execution!\n");
 		return 1;
 	}
-	char buf[10000] = {"\0"};
+	char buf[100000] = {"\0"};
 	int rst; // Return status of functions.
 	int cfd; // File descriptor for the client.
 
@@ -157,7 +157,7 @@ int mailfrom_helo(int sfd, char S[])
 
 void send_mail(int sfd)
 {
-	char S[10000], temp[1000], C[1000];
+	char S[100000], temp[1000], C[1000];
 	int i, fl, rst;
 	while (1)
 	{
@@ -190,25 +190,12 @@ void send_mail(int sfd)
 		printf("> Enter mail body [end with a single dot(.)]\n> ");
 		DATA(sfd);
 		printf("> Mail sent successfully!\n> ");
-		printf("> Do you want to send more mails? (Y) Yes (N) NO\n> ");
-		char ch[2] ;
-		scanf("%s", ch);
-		if ( ch[0] != 'Y')
-		{
-			printf("> Bye!\n");
-			memset(S, '\0', strlen(S));
-			strcpy(S, "QUIT");
-			strcat(S, "\r\n");
-			interact(sfd, S);
-			exit(1);
-		}
-		else
-		{
-			memset(S, '\0', strlen(S));
-			strcpy(S, "QUIT");
-			strcat(S, "\r\n");
-			interact(sfd, S);
-		}
+		printf("> Bye!\n");
+		memset(S, '\0', strlen(S));
+		strcpy(S, "QUIT");
+		strcat(S, "\r\n");
+		interact(sfd, S);
+		exit(1);
 	}
 }
 
@@ -228,7 +215,7 @@ void interact(int sfd, char S[])
 void DATA(int sfd)
 {
 	int i, rst;
-	char ch, S[10000] = {"DATA"};
+	char ch, S[100000] = {"DATA"};
 	strcat(S, "\r\n");
 	interact(sfd, S);
 	while (1)
@@ -266,13 +253,13 @@ void DATA(int sfd)
 
 void retrieve_mail(int sfd)
 {
-	char buf[10000], temp[10000], *ptr;
+	char buf[100000], temp[100000], *ptr;
 	int i, j, k, l, r, u, rst;
 	do {
 		do {
 			printf("> username?\n> ");
-			memset(buf, '\0', 10000);
-			memset(temp, '\0', 10000);
+			memset(buf, '\0', 100000);
+			memset(temp, '\0', 100000);
 			strcpy(buf, "USER ");
 			scanf("%s", temp);
 			if (strstr(temp, givendomain) == NULL)
@@ -292,15 +279,15 @@ void retrieve_mail(int sfd)
 		printf("%s\n", buf);
 		receive(sfd, buf);
 		printf("%s\n", buf);
-		memset(buf, '\0', 10000);
-		memset(temp, '\0', 10000);
+		memset(buf, '\0', 100000);
+		memset(temp, '\0', 100000);
 		strcpy(buf, "PASS ");
 		ptr = getpass("> Password?\n> ");
 		strcat(buf, ptr);
 		strcat(buf, "\r\n");
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
-		memset(buf, '\0', 10000);
+		memset(buf, '\0', 100000);
 		receive(sfd, buf);
 		printf("%s\n", buf);
 		if (strstr(buf, "ERR") != NULL)
@@ -312,7 +299,7 @@ void retrieve_mail(int sfd)
 	} while (1);
 	while (1)
 	{
-		memset(buf, '\0', 10000);
+		memset(buf, '\0', 100000);
 		strcpy(buf, "LIST");
 		strcat(buf, "\r\n");
 		usleep(100000);
@@ -320,29 +307,13 @@ void retrieve_mail(int sfd)
 		receive(sfd, buf);
 		printf("%s\n", buf);
 		set1(buf, &r);
-		// if (r != 0)
-		// 	printf("> Already Read Emails :\n> ");
-		// for (i = 0, j = 1; i < r; i++, j++)
-		// {
-		// 	receive(sfd, buf);
-		// 	printf("\t%d %sbytes\n> ", j, buf);
-		// }
-		// if (u == 0)
-		// 	printf("No Unread Emails!\n");
-		// else
-		// 	printf("Unread Emails :\n> ");
-		// for (i = 0; i < u; i++, j++)
-		// {
-		// 	receive(sfd, buf);
-		// 	printf("\t%d %sbytes\n> ", j, buf);
-		// }
 		if (r != 0)
 		{
 			do {
 				printf("Which one do you want to read?\n> ");
 				scanf("%d", &i);
 			} while (i > r);
-			memset(buf, '\0', 10000);
+			memset(buf, '\0', 100000);
 			strcpy(buf, "RETR ");
 			char buf1[5] = {'\0'};
 			sprintf(buf1, "%d", i);
@@ -351,8 +322,21 @@ void retrieve_mail(int sfd)
 			usleep(100000);
 			printf("%s\n", buf);
 			rst = send(sfd, buf, strlen(buf), 0);
-			receive(sfd, buf);
-			printf("> Mail :\n> %s\n", buf);
+			int r = 0;
+			while (1)
+			{
+				r = 0;
+				memset(buf, '\0', strlen(buf));
+				rst = recv(sfd, buf, BUF_SIZE, 0);
+				while (r < sizeof(buf) - 1)
+				{
+					if (buf[r] != 0)
+						printf("%c", buf[r]);
+					r++;
+				}
+				if (rst < BUF_SIZE)
+					break;
+			}
 			printf("> Do you want to read more ? (Y) Yes (N) NO\n> ");
 		}
 		char ch[2];
@@ -360,7 +344,7 @@ void retrieve_mail(int sfd)
 			scanf("%s", ch);
 		if (ch[0] != 'Y' || (r + u) == 0)
 		{
-			memset(buf, '\0', 10000);
+			memset(buf, '\0', 100000);
 			strcpy(buf, "QUIT");
 			strcat(buf, "\r\n");
 			usleep(100000);
