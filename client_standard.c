@@ -31,6 +31,7 @@ void send_mail(int sfd);
 int	 mailfrom_helo(int sfd, char S[]);
 void retrieve_mail(int sfd);
 void set(char buf[], int *r, int *u);
+void set1(char buf[], int*r);
 
 int main (int argc, char *argv[])
 {
@@ -126,13 +127,11 @@ int mailfrom_helo(int sfd, char S[])
 {
 	// if (first == 1)
 	// {
-	printf("HERE1\n");
 	int rst;
 	char buf[BUF_SIZE] = {'\0'};
 	memset(buf, '\0', strlen(buf));
 	rst = recv(sfd, buf, BUF_SIZE, 0);
 	printf("%s\n", buf);
-	printf("HERE2\n");
 	char helostr[100] = {"HELO "};
 	int i, j, n = strlen(S);
 	for (i = 1; S[i - 1] != '@' && i < n; i++);
@@ -146,7 +145,6 @@ int mailfrom_helo(int sfd, char S[])
 	strcat(helostr, "\r\n");
 	interact(sfd, helostr);
 	// first = 0;
-	printf("HERE3\n");
 	// }
 	char mailstr[1000] = { "MAIL FROM:" };
 	strcat(mailstr, "<");
@@ -154,7 +152,6 @@ int mailfrom_helo(int sfd, char S[])
 	strcat(mailstr, ">");
 	strcat(mailstr, "\r\n");
 	interact(sfd, mailstr);
-	printf("HERE4\n");
 	return 1;
 }
 
@@ -288,14 +285,19 @@ void retrieve_mail(int sfd)
 			}
 		} while (1);
 		strcat(buf, temp);
+		strcat(buf, "\r\n");
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
 		receive(sfd, buf);
+		printf("%s\n", buf);
+		receive(sfd, buf);
+		printf("%s\n", buf);
 		memset(buf, '\0', 10000);
 		memset(temp, '\0', 10000);
 		strcpy(buf, "PASS ");
 		ptr = getpass("> Password?\n> ");
 		strcat(buf, ptr);
+		strcat(buf, "\r\n");
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
 		memset(buf, '\0', 10000);
@@ -316,36 +318,41 @@ void retrieve_mail(int sfd)
 		usleep(100000);
 		rst = send(sfd, buf, strlen(buf), 0);
 		receive(sfd, buf);
-		set(buf, &r, &u);
+		printf("%s\n", buf);
+		set1(buf, &r);
+		// if (r != 0)
+		// 	printf("> Already Read Emails :\n> ");
+		// for (i = 0, j = 1; i < r; i++, j++)
+		// {
+		// 	receive(sfd, buf);
+		// 	printf("\t%d %sbytes\n> ", j, buf);
+		// }
+		// if (u == 0)
+		// 	printf("No Unread Emails!\n");
+		// else
+		// 	printf("Unread Emails :\n> ");
+		// for (i = 0; i < u; i++, j++)
+		// {
+		// 	receive(sfd, buf);
+		// 	printf("\t%d %sbytes\n> ", j, buf);
+		// }
 		if (r != 0)
-			printf("> Already Read Emails :\n> ");
-		for (i = 0, j = 1; i < r; i++, j++)
-		{
-			receive(sfd, buf);
-			printf("\t%d %sbytes\n> ", j, buf);
-		}
-		if (u == 0)
-			printf("No Unread Emails!\n");
-		else
-			printf("Unread Emails :\n> ");
-		for (i = 0; i < u; i++, j++)
-		{
-			receive(sfd, buf);
-			printf("\t%d %sbytes\n> ", j, buf);
-		}
-		if ((r + u) != 0)
 		{
 			do {
 				printf("Which one do you want to read?\n> ");
 				scanf("%d", &i);
-			} while (i > (r + u));
+			} while (i > r);
 			memset(buf, '\0', 10000);
-			sprintf(buf, "%d", i);
+			strcpy(buf, "RETR ");
+			char buf1[5] = {'\0'};
+			sprintf(buf1, "%d", i);
+			strcat(buf, buf1);
 			strcat(buf, "\r\n");
 			usleep(100000);
+			printf("%s\n", buf);
 			rst = send(sfd, buf, strlen(buf), 0);
 			receive(sfd, buf);
-			printf("> Mail :\n> %s", buf);
+			printf("> Mail :\n> %s\n", buf);
 			printf("> Do you want to read more ? (Y) Yes (N) NO\n> ");
 		}
 		char ch[2];
@@ -358,6 +365,8 @@ void retrieve_mail(int sfd)
 			strcat(buf, "\r\n");
 			usleep(100000);
 			rst = send(sfd, buf, strlen(buf), 0);
+			receive(sfd, buf);
+			printf("%s\n", buf);
 			exit(1);
 		}
 	}
@@ -376,6 +385,17 @@ void set(char buf[], int *r, int *u)
 		k = 10 * k + buf[j] - '0';
 	}
 	*u = k;
+}
+
+void set1(char buf[], int* r)
+{
+	int j = 0, k, n = strlen(buf);
+	for (k = 0; k < n; k++)
+	{
+		if (buf[k] == '\n')
+			j++;
+	}
+	*r = j - 2;
 }
 
 void receive(int sfd, char buf[])
@@ -418,10 +438,8 @@ int interact1(int sfd, char S[], char C[])
 	strcpy(buf, S);
 	strcat(buf, "\r\n");
 	usleep(100000);
-	printf("ARE WE HERE?\n");
 	rst = send(sfd, buf, strlen(buf), 0);
 	memset(buf, '\0', strlen(buf));
-	printf("OR HERE?\n");
 	rst = recv(sfd, buf, BUF_SIZE, 0);
 	printf("%s\n", buf);
 	return 1;
